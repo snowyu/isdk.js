@@ -1,6 +1,4 @@
-mimeTypes = require 'mime-types'
+module.exports = mimeType = require 'mime-type/with-db'
 
-#mimes = mimeTypes.mimes
-
-mimeTypes.define 'script/coffee',
-  extensions: ['coffee', 'litcoffee', 'coffee.md'], mimeTypes.dupAppend
+mimeType.define 'script/coffee',
+  extensions: ['coffee', 'litcoffee', 'coffee.md'], mimeType.dupAppend
