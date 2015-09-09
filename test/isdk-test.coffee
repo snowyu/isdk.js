@@ -6,7 +6,7 @@ expect          = chai.expect
 assert          = chai.assert
 chai.use(sinonChai)
 
-isdk            = require '../src/'
+#isdk            = require '../src/'
 setImmediate    = setImmediate || process.nextTick
 
 describe "isdk", ->
