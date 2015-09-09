@@ -63,11 +63,27 @@ isdk 是文档/代码内容产生系统，它设想的目标如下：
 ------
 
 * Processor 根处理者工厂
-  * ISDKProcessor 启动者。
-  * Configurator 工厂
-  * Compiler 工厂
-  * Linker 工厂
+  * process the file or the folder.
+  * determine the file or folder whether can be processed via it.
+    * howto determine which files the processor can processed?
+    * pattern: the file pattern?
+    * type: the file type?
+    * configuration:
+      * path
+      * name|identifier|slug
+      * title|subject
+      * type: the file type is the mime-type.
+      * tags
+      * language
+  * manage sub-processors
+    * ISDKProcessor 启动者。
+    * Configurator 工厂
+    * Compiler 工厂
+    * Linker 工厂
 * FrontMatterConfigurator
+
+现在已经不存在 Processor 工厂了，只有task-registry.
+所有的处理装置都放在task-registry.
 
 任务划分
 -------
@@ -102,27 +118,51 @@ isdk 是文档/代码内容产生系统，它设想的目标如下：
 * src: 待处理的目录，如果不存在，默认为当前工作目录。
 * dest: 最后输出的目标目录。如果不存在，默认为当前目录的public目录。
 
-然后选定所需的编译器和链接器进行处理。先把流程跑通吧。准备将Resource移到新坑成为一包。
+然后选定所需的编译器和链接器进行处理。先把流程跑通吧。准备将Resource移到新坑(`resource-file`)成为一包。
+Ok, `resource-file` 基本可以工作了。
 
-现在搞定了资源文件和文件夹，当加载资源的时候，它的配置也就随着一起加载了。
-想想看能否直接利用prototype来做属性值的继承的事情:
-如果子类没有对属性重新赋值，那么就取父类的属性值。
-那么来自命令行参数的如何附加?命令行参数优先级高于根目录文件设定的参数:
+* load(): 加载内容以及配置。通过递归得到所有的目录和文件列表。
+  * recursive: load all sub-folders recursively.
+  * setPrototypeOf to the parent folder.
+  - remove the config file object from the parent's contents(the files list) if exists.
+  * convert the config's contents of a folder to the file objects.
 
-* `root.__proto__ = Resource '.'`
-* `args.__proto__ = root`
-* `file.__proto__ = args`
 
-把`__proto__`当作parent打整。得给这样的函数取个名字:
+在 Resource 中我们得到了所有的目录和文件列表。这时，目录的配置也被加载，
+文件的内容和配置没有被加载。下面需要根据目录的类型来决定不同的处理方式。
+这里可能会有的问题是，因为文件没有加载，所以无法知道某个文件到底是文件还是
+只是文件的配置。
 
-```coffee
-setObjectParent = require 'inherits-ex/lib/setPrototypeOf'
-getObjectParent = require 'inherits-ex/lib/getPrototypeOf'
+假设没有影响，进入下一阶段：处理阶段。定义处理方式。处理总是针对文件来的。
+处理的时候可以针对dest,也可以不。一个文件可以有多个处理方式。
+如果是目录，那么可以按照指定的文件名称匹配汇集进行处理。（这种操作叫链接吧）
+编译阶段，仅仅是对单个文件处理成目标文件。
 
-setObjectParent root, Resource '.'
-setObjectParent args, root
-```
+编译阶段的:
 
+* 模板替换: 只是对内容做模板替换。可以设置模板引擎。(task/template)
+* 合并内容: 将另外一个文件的内容合并在一起。
+* 删除: 删除指定的文件(在内存中的)。
+
+无论是更名还是改扩展名，如果数据没有加载那么就是个问题。除非是搞个待做事宜队列排着。
+还是将这些操作作为链接阶段吧。
+
+链接阶段的:
+
+* 复制: 复制到指定的文件夹，如果没有指定文件夹则是dest文件夹。
+* 追加: 追加到指定的文件。如果没有指定目标文件夹则是dest文件夹。
+* 更名：只是更改文件名
+* 更扩展名：只是更改文件扩展名
+
+这些处理方式，不就是一个个的任务么？放到任务模块去，然后还可以组合，定义新任务。
+任务管理器(task-registry)完成.
+好了，编译阶段就实现个模板替换，链接阶段就实现复制。就可以测试了。
+编译阶段的任务列表，可以作为配置项放在文件里面。那么链接阶段呢？
+放在文件夹里?或者不区分，编译，链接阶段，都是处理阶段。文件夹中多一个过滤器参数(glob?)。
+完成了任务顺序执行器: task-registry-series。
+
+处理阶段到底是该内部处理在内存中，还是开始写入到目标目录上？或者说产生的中间文件
+该放在哪里？
 
 然后需要一个东西贯穿始终(session?)
 初步设想的是传递 ISDKProcessor.
