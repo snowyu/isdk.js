@@ -13,13 +13,18 @@ ISDK的主要灵感来自于[Gulp4][gulp4]。[Gulp4][gulp4]由一个简单的任
 * `Stupid` : 傻
   * 这个`傻` 绝不是说，写的函数代码对功能职责思虑不周，而导致在某些情况下无法使用
   * 这个`傻` 是指使用者，哪怕 `傻子` 也明白是怎么回事。这里的 `傻` 并不是贬义词。
+  * 记得以前最早智能相机出现的时候，被人们亲切的称为“傻瓜相机”是一个道理。
+  * 傻即简单
+    * 使用简单
+    * 阅读简单
+    * 理解简单
   * 我自己更愿意用 `Smart` 来代替 `Stupid`
 
 
-[Gulp4][gulp4]的主体代码几乎没有，都是引用的模块的功能，但是模块的命名那个抽象得，不进去了解
-你完全没头脑。
+[Gulp4][gulp4]的主体代码几乎没有，都是引用的模块的功能，但是模块的命名那个叫抽象得，不进去
+看README文件了解，你完全没头脑。
 
-代码用Coffee更好看些,另外变量命名我也改成更易于理解的名字:
+下面是我用Coffee-script重写的Gulp4主体代码,其中的变量命名我也改成更易于理解的名字:
 
 ```coffee
 TaskManager = require('undertaker')
@@ -49,7 +54,7 @@ module.exports = new Gulp()
   * 我就干脆自己彻底重写了: [abstract-file][abstract-file]
 * undertaker任务管理器的任务是无参数的，无法传递参数进去。设定任务间分享数据的方式也不很讨喜。
   * 无法复用，提了个Issue无果：觉得需要参数的任务是天方夜谭。
-  * 只得自己写了: [task-registry][task-registry] 支持参数对象以及同步和异步执行。
+  * 这也只得自己写了: [task-registry][task-registry] 支持参数对象以及同步和异步执行。
 * 仅支持异步处理，有的任务（不涉及IO的）用同步处理方式反而更快，当不在乎性能的时候，同步代码开发更便捷。
 * 仅支持流式管道处理方式，对于不熟悉stream的开发者会感觉测试跟踪无处着手。
 * 从开发者的角度来看，Gulp4主代码非常干净，一目了然。但是从使用者的角度来看，要使用它
@@ -61,7 +66,16 @@ module.exports = new Gulp()
 
 从开发者的角度来说，我希望ISDK能解决上述的痛点。这个毋庸多说。
 
-下面主要从用户（非开发人员）角度来谈谈ISDK。
+下面主要从用户（非开发人员）角度来谈谈ISDK。它有以下几个特点，得以区别于其它buiding系统。
+
+* 简单完整自洽系统
+* 层级(树形)任务插件管理机制
+  * 支持同步或者异步执行
+* 抽象文件资源管理机制
+  * 支持虚拟目录
+  * 支持虚拟内容(未实现)
+* 文档约定配置
+* 文档继承配置
 
 ISDK的作用在于遍历源文件夹，根据不同的文件执行不同的处理任务。最后输出到指定的目标目录。
 它的工作就是围绕一个文件夹进行展开处理。这个文件夹称之为 `cwd` (current working directory-当前工作目录)。
@@ -84,8 +98,8 @@ ISDK的配置文件分为两类：文件夹配置和普通文件配置，
 * `文档约定` 配置
 * `文档继承` 配置
 
-还是举一个简单的例子来说明。简单假设我们只支持yaml配置格式(扩展名为:".yml")。
-文件夹的配置文件名称为"README.md"。内容如下：
+还是先举一个简单的例子来说明。简单假设我们只支持yaml配置格式(扩展名为:".yml")。
+文件夹的配置文件名称为"README.md"，内容如下。
 其中文件头为[yaml][yaml]配置:
 
 ```yaml
@@ -123,8 +137,10 @@ tasks:
 * tasks: 执行的任务列表，任务按照列表中的出现顺序，依次执行，任务只针对文件(非目录)进行。
 ```
 
-对于只希望在本文件中执行一次,不希望后代执行的任务如何处理为佳？
-更进一步抽象为不希望后代继承的属性如何表现？
+*问题*:
+
+1. 对于只希望在本文件中执行一次,不希望后代执行的任务如何处理为佳？
+   更进一步抽象为不希望后代继承的属性如何表现？
 
 ## 主代码
 
@@ -146,11 +162,18 @@ isdkTask.executeSync cwd: '.', src:['**/*.md', '**/']
 
 ## 目前进度
 
-完成了一半，主体架构大致完成。底层的一些类库完成，最小可执行原型基本完成。现在就告一段落了，再写就离我本来
-项目偏题太远，这些里面原本在我的项目中有的可能会被用上。
+完成了一半，主体架构大致完成。底层的一些类库完成，最小可执行原型基本完成。现在就告一段落了，再写就离我原本的
+智脑项目偏题太远，这些东西在智脑项目中有的会被用上(除了标识为isdk的包，都是通用项目)。
 
-* 资源文件类抽象
-  * [abstract-file][abstrat-file]: 完工
+* 辅助函数与类
+  * [load-config-file][load-config-file]:完工
+  * [load-config-folder][load-config-folder]:完工
+  * [front-matter-markdown][front-matter-markdown]: 基本完工
+  * [abstract-logger][abstract-logger]: 基本完工，支持loglevel(v0.2).
+  * [terminal-logger][terminal-logger]: 基本可用(在终端显示彩色信息)，但不支持loglevel.
+
+* 资源文件类
+  * [abstract-file][abstract-file]: 完工
   * [custom-file][custom-file]: 完工
   * [resource-file][resource-file]: 同步执行完工，异步写了一半，流没写
   * [isdk-resource][isdk-resource]: 同步执行基本可用
@@ -163,13 +186,14 @@ isdkTask.executeSync cwd: '.', src:['**/*.md', '**/']
   * [task-registry-resource][task-registry-resource]: 抽象任务，服务于Resource-file.
   * [task-registry-file-copy][task-registry-file-copy]: 单个文件复制任务,基本完工
   * [task-registry-file-template][task-registry-file-template]: 文件模板任务,基本完工
-  * [task-registry-template-engine][task-registry-template-engine]: 模板引擎管理,基本完工
+  * [task-registry-template-engine][task-registry-template-engine]: 抽象模板引擎类及管理,基本完工
   * [task-registry-template-engine-lodash][task-registry-template-engine-lodash]: lodash模板引擎,基本完工
 
 一点都没做的：
 
 * 事件管理我希望作为一个插件加入，并能支持 ReactiveX.io.
-* 终端日志处理任务
+* 终端日志处理任务:我希望作为一种插件能力加入，而不是写死在task-registry中。
+  * 目前暂时写在task-registry-series上。
 * 封装函数作为task-registry任务
 * 封装Gulp和grunt的插件作为task-registry的任务
 
@@ -258,6 +282,13 @@ tasks:
         - "**/*.txt"
 ```
 
+当我设置了PropertyManager中对对象属性初始值的默认处理凡是为clone方式(避免相互影响)，
+而如果用户设置了不能clone的对象作为初始值的时候，就会报错(如console)，错误会很莫名其妙，
+我现在的解决方法，在原错误信息上，添加一个错误提示,让他知道如何设置关闭clone方式。
+但是对于某些用户自以为属性初始值统统默认是直接赋值，不看文档，那么也会出现错误。
+默认设置只能应对一部分情况，所以必须有开关调整，如果开发者单细胞考虑问题，写的代码出问题的
+机率就会变得更大。这算是个Stupid的实例。
+
 [grunt]: http://gruntjs.com/
 [gulp]: http://gulpjs.com/
 [gulp4]: https://github.com/gulpjs/gulp/tree/4.0
@@ -266,6 +297,10 @@ tasks:
 [yaml]: http://yaml.org/
 [isdk]: https://github.com/snowyu/isdk.js
 [front-matter-markdown]: https://github.com/snowyu/front-matter-markdown.js
+[load-config-file]: https://github.com/snowyu/load-config-file.js
+[load-config-folder]: https://github.com/snowyu/load-config-folder.js
+[abstract-logger]:https://github.com/snowyu/abstract-logger.js
+[terminal-logger]:https://github.com/snowyu/terminal-logger.js
 [abstract-file]: https://github.com/snowyu/abstract-file.js
 [custom-file]: https://github.com/snowyu/custom-file.js
 [resource-file]: https://github.com/snowyu/resource-file.js
