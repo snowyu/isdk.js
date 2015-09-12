@@ -20,24 +20,8 @@ It basic goals:
 
 Main Code:
 
-    program   = require 'commander'
-    #Task      = require 'task-registry'
     ISDKTask  = require 'task-registry-isdk' #register the isdk task
-
-    isdkTask = ISDKTask()
-
-    parseList = (val)->val.split(',')
-
-    program.version(require('../package').version)
-    program
-    .command('build [path]', 'build the current working path(default).', isDefault: true)
-    .option('-d, --dest <path>', 'Destination: the directory where ISDK will write files')
-    .option('-s, --src <items>', 'the file pattern to match, separate via comma', parseList)
-    .action (path, options)->
-      path ?= process.cwd()
-      options.cwd = path
-      isdkTask.executeSync options
-    program.parse(process.argv)
+    module.exports = isdkTask = ISDKTask()
 
 [task-registry]: https://github.com/snowyu/task-registry.js
 [task-registry-series]: https://github.com/snowyu/task-registry-series.js

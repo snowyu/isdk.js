@@ -10,18 +10,24 @@
   "files": [
     "README.md",
     "LICENSE-MIT",
+    "LICENSE",
+    "bin",
+    "src",
+    "test",
     "lib"
   ],
+  "bin": {
+    "isdk": "lib/"
+  },
   "keywords": [
     "isdk",
     "processor"
   ],
   "dependencies": {
-    "change-case": "^2.3.0",
-    "commander": "^2.8.1",
     "path.js": "^1.0.7",
     "task-registry-isdk": "0.0.3",
-    "util-ex": "^0.3.14"
+    "util-ex": "^0.3.14",
+    "yargs": "^3.24.0"
   },
   "devDependencies": {
     "chai": "~1.10.0",
