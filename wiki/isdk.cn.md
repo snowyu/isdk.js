@@ -153,12 +153,15 @@ isdkTask = ISDKTask()
 isdkTask.executeSync cwd: '.', src:['**/*.md', '**/']
 ```
 
+----
+sorry, 这个[isdk][isdk]还没有写，正在写 [isdk-demo][isdk-demo] 演示它的处理过程，写好后可以看。
+
 具体可以参见: [isdk][isdk]
 
 安装:
 
     npm install isdk -g
-
+----
 
 ## 目前进度
 
@@ -170,7 +173,7 @@ isdkTask.executeSync cwd: '.', src:['**/*.md', '**/']
   * [load-config-folder][load-config-folder]:完工
   * [front-matter-markdown][front-matter-markdown]: 基本完工
   * [abstract-logger][abstract-logger]: 基本完工，支持loglevel(v0.2).
-  * [terminal-logger][terminal-logger]: 基本可用(在终端显示彩色信息)，但不支持loglevel.
+  * [terminal-logger][terminal-logger]: 基本可用: 在终端显示彩色状态logger，以及单行更新支持。
 
 * 资源文件类
   * [abstract-file][abstract-file]: 完工
@@ -295,6 +298,7 @@ tasks:
 [front-matter]: http://jekyllrb.com/docs/frontmatter/
 [markdown]: https://en.wikipedia.org/wiki/Markdown
 [yaml]: http://yaml.org/
+[isdk-demo]:https://github.com/snowyu/isdk-demo.js
 [isdk]: https://github.com/snowyu/isdk.js
 [front-matter-markdown]: https://github.com/snowyu/front-matter-markdown.js
 [load-config-file]: https://github.com/snowyu/load-config-file.js
