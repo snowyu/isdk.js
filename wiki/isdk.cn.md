@@ -105,6 +105,7 @@ ISDK的配置文件分为两类：目录(文件夹)配置和普通文件配置�
 
 还是先举一个简单的例子来说明。简单假设我们只支持yaml配置格式(扩展名为:".yml")。
 文件夹的配置文件名称为"README.md"，内容如下。
+
 其中文件头为[yaml][yaml]配置:
 
 ```yaml
@@ -179,6 +180,8 @@ raiseError: false
   * overwrite *(Boolean)*: 是否覆盖已存在的目标文件.默认为false。
 ```
 
+该文件的完整演示在：[isdk-demo][isdk-demo]。
+
 *问题*:
 
 1. 对于只希望在本文件中执行一次,不希望后代执行的任务如何处理为佳？
@@ -211,7 +214,16 @@ isdkTask.executeSync cwd: '.', src:['**/*.md', '**/']
 ```
 
 ----
-sorry, 这个[isdk][isdk]还没有写，正在写 [isdk-demo][isdk-demo] 演示它的处理过程，写好后可以看。
+sorry, 这个[isdk][isdk]还没有写，不过可以参考 [isdk-demo][isdk-demo]的src目录下的代码。
+这个可以认为是isdk的原型简化版本。在lib目录下是Coffee-script编译后的js代码。如果已经安装了
+Coffee-script,可以执行 npm run coffee-build 进行编译。
+
+运行方式, 在项目根目录下:
+
+1. 不必编译，直接执行`coffee src/` 运行,如果已经安装了Coffee-script。
+2. 还可以运行 `node lib/index.js`，执行编译后的js版本。
+3. 执行 `npm run build`， 其实它调用的就是 `node lib/index.js`, 封装在npm中。
+
 
 具体可以参见: [isdk][isdk]
 
