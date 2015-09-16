@@ -166,6 +166,7 @@ raiseError: false
   * enabled *(Boolean)*: 是否开启日志输出。默认为true.
 
 ## 任务说明
+
 * [mkdir][mkdir] 任务: 创建目录任务，类似 `mkdir -p`.
   * dest *(String)*: 待创建的目录.
 * [echo][echo] 任务: 示例额任务，把输入参数直接返回。源代码在: src/tasks/echo.coffee
@@ -176,6 +177,8 @@ raiseError: false
 * [copy][copy] 复制: 文件复制任务，将文件复制到指定的目录中。
   * dest *(String)*: 设定目标文件夹或者文件名.
   * overwrite *(Boolean)*: 是否覆盖已存在的目标文件.默认为false。
+
+**注意:**: 如果没有指定任务的参数，那么默认传递给任务的参数就是该文件对象。
 ```
 
 该文件的完整演示在：[isdk-demo][isdk-demo]。
