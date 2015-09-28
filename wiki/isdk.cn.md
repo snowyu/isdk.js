@@ -1,87 +1,34 @@
-# 为什么会有ISDK
-
-简单的说，[ISDK][isdk] 是一个build系统，类似于[Grunt][grunt], [Gulp][gulp].
-ISDK的主要灵感来自于[Gulp4][gulp4]。[Gulp4][gulp4]由一个简单的任务管理系统和
-流式文件处理系统（管道处理）构成。它极好的阐述了KISS(Keep It Simple and Stupid)原则。
-
-我简单谈下我自己对KISS的理解。对KISS原则的两个S的理解:
-
-* `Simple` : 简单
-  * 看上去很`简单` ，让功能简单到让人一目了然，看着例子就能上手，甚至看上去有点傻
-  * 使用上很`简单` ，考虑了各种情况，让人使用起来不至于抓狂。
-  * 代码上很`简单` ，这个简单还表现在函数的代码行数不能过多，每一个模块，每一个函数功能尽量职责单一
-* `Stupid` : 傻
-  * 这个`傻` 绝不是说，写的函数代码对功能职责思虑不周，而导致在某些情况下无法使用
-  * 这个`傻` 是指使用者，哪怕 `傻子` 也明白是怎么回事。这里的 `傻` 并不是贬义词。
-  * 记得以前最早智能相机出现的时候，被人们亲切的称为“傻瓜相机”是一个道理。
-  * 傻即简单
-    * 使用简单
-    * 阅读简单
-    * 理解简单
-  * 我自己更愿意用 `Smart` 来代替 `Stupid`
-
-
-[Gulp4][gulp4]的主体代码几乎没有，都是引用的模块的功能，但是模块的命名那个叫抽象得，不进去
-看README文件了解，你完全没头脑。
-
-下面是我用Coffee-script重写的Gulp4主体代码,其中的变量命名我也改成更易于理解的名字:
-
-```coffee
-TaskManager = require('undertaker')
-virtualFileSystem = require('vinyl-fs')
-
-class Gulp
-  inherits Gulp, TaskManager # Gulp类继承自TaskManager
-
-  src: virtualFileSystem.src # 源文件过滤函数，返回Readable/Duplex Stream.
-  dest: virtualFileSystem.dest # 指定目标目录，返回Readable/Writable stream.
-  symlink: virtualFileSystem.symlink
-  watch: (glob, options, task)->
-    #...做了一些调用参数检查
-    return virtualFileSystem.watch(glob, options, task)
-  Gulp: Gulp
-
-module.exports = new Gulp()
-```
-
-非常漂亮的代码，虽然看上去它什么也没有干，是不是有点**傻**的感觉。
-
-现在，再来说说[Gulp4][gulp4]的不足（主要从开发者的角度）:
-
-* 无法看到里面的目录结构，你能看到的只是文件。只能通过`src()`函数设定不同的文件过滤器。
-* vinyl-fs的抽象程度不够，仅满足于src的文件。不支持文件夹(目录)。
-  * 我提了个PR, coffee写的，尽管他说他们内部也在用coffee。但public上他们只用js.
-  * 我就干脆自己彻底重写了: [abstract-file][abstract-file]
-* undertaker任务管理器的任务是无参数的，无法传递参数进去。设定任务间分享数据的方式也不很讨喜。
-  * 无法复用，提了个Issue无果：觉得需要参数的任务是天方夜谭。
-  * 这也只得自己写了: [task-registry][task-registry] 支持参数对象以及同步和异步执行。
-* 仅支持异步处理，有的任务（不涉及IO的）用同步处理方式反而更快，当不在乎性能的时候，同步代码开发更便捷。
-* 仅支持流式管道处理方式，对于不熟悉stream的开发者会感觉测试跟踪无处着手。
-* 从开发者的角度来看，Gulp4主代码非常干净，一目了然。但是从使用者的角度来看，要使用它
-  还是有较高的门槛。尤其是对非开发人员使用更为艰难。
-
 # 什么是ISDK
 
-从开发者的角度来说，我希望ISDK能解决上述的痛点。这个毋庸多说。
+[ISDK][isdk] 是一个基于配置的任务执行系统，它可以用于类似于[cmake][cmake], [RAKE][ruby-rake], [Grunt][grunt], [Gulp][gulp]的场合，
+也可以用于[Yeoman][yeoman]这样的脚手架生成工具.
 
-下面主要从用户（非开发人员）角度来谈谈ISDK。它的核心亮点是：用文档表示配置，用目录树表示继承树。
+从开发者的角度来说，我希望ISDK最终能:
+
+* 简单的任务开发和管理
+* 按需加载的文件目录处理
+* 同时支持同步，异步处理: 有的任务（不涉及IO的）用同步处理方式反而更快，当不在乎性能的时候，同步代码开发更便捷。
+* 支持流式管道处理方式
+
+
+从用户（非开发人员）角度来看。它的核心亮点是：用文档表示任务配置，用目录(文件夹)树表示任务继承树。
 
 * 利用文件夹里的readme文件作为目录的配置
-* 利用目录树作为配置的继承树
+* 利用目录树作为任务配置的继承树
 
 它的以下特点，使得它得以区别于其它buiding系统:
 
-* 用Markdown([front-matter][front-matter])文档的方式来写任务及管理
-  * 文档即配置，配置即程序
-  * 无缝building继承(只需要将其它building文档复制或者链接到其子目录下)
+* 可以用Markdown([front-matter][front-matter])文档的方式来写任务及管理
+  * 文档即配置任务，任务配置即程序
+  * 无缝任务继承(只需要将其它任务目录复制或者链接到其子目录下)
 * 简单完整自洽系统
 * 层级(树形)任务插件管理机制
   * 支持同步或者异步执行
 * 抽象文件资源管理机制
   * 支持虚拟目录
   * 支持虚拟内容(未实现)
-* 文档约定配置
-* 目录树继承配置
+* 文档约定任务配置
+* 目录树继承任务配置
 
 ISDK的作用在于遍历源文件夹，根据不同的文件执行不同的处理任务。最后输出到指定的目标目录。
 它的工作就是围绕一个文件夹进行展开处理。这个文件夹称之为 `cwd` (current working directory-当前工作目录)。
@@ -92,22 +39,22 @@ ISDK的作用在于遍历源文件夹，根据不同的文件执行不同的处�
 所以将目录下的 `README.md` 视为该目录的配置文件就理所当然了。通过[front-matter][front-matter]我很简单的
 把配置放进了[markdown][markdown]文件。而这些配置项可以被下属的文件(目录)继承或者改变。
 
-ISDK的配置文件分为两类：目录(文件夹)配置和普通文件配置，
+ISDK的任务配置文件分为两类：目录(文件夹)配置和普通文件配置，
 
-* 文件夹配置将影响该目录下的所有文件以及子目录。
+* 文件夹的任务配置将影响该目录下的所有文件以及子目录。
   * 子目录也可以有自己的配置文件，影响子目录下的所有文件，里面的配置项可以继承或者覆盖父目录的配置项。
   * 支持虚拟目录，具体详见[front-matter-markdown][front-matter-markdown]里的TOC描述。
 * 普通文件配置只影响本文件，里面的配置项可以继承或者覆盖父目录的配置项。
 
 它的配置主要指导思想是:
 
-* `文档约定` 配置
-* `目录继承` 配置
+* `文档约定` 任务配置
+* `目录继承` 任务配置
 
 还是先举一个简单的例子来说明。简单假设我们只支持yaml配置格式(扩展名为:".yml")。
 文件夹的配置文件名称为"README.md"，内容如下。
 
-其中文件头为[yaml][yaml]配置:
+其中文件头为[yaml][yaml]任务配置:
 
 ```yaml
 ---
@@ -164,7 +111,7 @@ raiseError: false
     * WARNING(4): warning condition
     * NOTICE(5): a normal but significant condition
     * INFO(6): a purely informational message
-    * DEBUG(7): messages to debug an application  
+    * DEBUG(7): messages to debug an application
     * TRACE(8): messages to trace an application
   * enabled *(Boolean)*: 是否开启日志输出。默认为true.
 
@@ -360,7 +307,70 @@ tasks:
 
 -----
 
-开发趣事:
+
+# Gulp简介
+
+ISDK的主要灵感来自于[Gulp4][gulp4]。[Gulp4][gulp4]由一个简单的任务管理系统和
+流式文件处理系统（管道处理）构成。我个人认为它极好的阐述了KISS(Keep It Simple and Stupid)原则。
+
+我谈下我自己对KISS的理解。对KISS原则的两个`S`的理解:
+
+* `Simple` : 简单
+  * 看上去很`简单` ，让功能简单到让人一目了然，看着例子就能上手，甚至看上去有点傻
+  * 使用上很`简单` ，考虑了各种情况，让人使用起来不至于抓狂。
+  * 代码上很`简单` ，这个简单还表现在函数的代码行数不能过多，每一个模块，每一个函数功能尽量职责单一
+* `Stupid` : 傻
+  * 这个`傻` 绝不是说，写的函数代码对功能职责思虑不周，而导致在某些情况下无法使用
+  * 这个`傻` 是指使用者，哪怕 `傻子` 也明白是怎么回事。这里的 `傻` 并不是贬义词。
+  * 记得以前最早智能相机出现的时候，被人们亲切的称为“傻瓜相机”是一个道理。
+  * 傻即简单
+    * 使用简单
+    * 阅读简单
+    * 理解简单
+  * 我自己更愿意用 `Smart` 来代替 `Stupid`
+
+
+[Gulp4][gulp4]的主体代码几乎没有，都是引用的模块的功能，但是模块的命名那个叫抽象得，不进去
+看README文件了解，你完全没头脑。
+
+下面是我用Coffee-script重写的Gulp4主体代码,其中的变量命名我也改成更易于理解的名字:
+
+```coffee
+TaskManager = require('undertaker')
+virtualFileSystem = require('vinyl-fs')
+
+class Gulp
+  inherits Gulp, TaskManager # Gulp类继承自TaskManager
+
+  src: virtualFileSystem.src # 源文件过滤函数，返回Readable/Duplex Stream.
+  dest: virtualFileSystem.dest # 指定目标目录，返回Readable/Writable stream.
+  symlink: virtualFileSystem.symlink
+  watch: (glob, options, task)->
+    #...做了一些调用参数检查
+    return virtualFileSystem.watch(glob, options, task)
+  Gulp: Gulp
+
+module.exports = new Gulp()
+```
+
+非常漂亮的代码，虽然看上去它什么也没有干，是不是有点**傻**的感觉。
+
+现在，再来说说[Gulp4][gulp4]的不足（主要从开发者的角度）:
+
+* 无法看到里面的目录结构，你能看到的只是文件。只能通过`src()`函数设定不同的文件过滤器。
+* vinyl-fs的抽象程度不够，仅满足于src的文件。不支持文件夹(目录)。
+  * 我提了个PR, coffee写的，尽管他说他们内部也在用coffee。但public上他们只用js.
+  * 我就干脆自己彻底重写了: [abstract-file][abstract-file]
+* undertaker任务管理器的任务是无参数的，无法传递参数进去。设定任务间分享数据的方式也不很讨喜。
+  * 无法复用，提了个Issue无果：觉得需要参数的任务是天方夜谭。
+  * 这也只得自己写了: [task-registry][task-registry] 支持参数对象以及同步和异步执行。
+* 仅支持异步处理，有的任务（不涉及IO的）用同步处理方式反而更快，当不在乎性能的时候，同步代码开发更便捷。
+* 仅支持流式管道处理方式，对于不熟悉stream的开发者会感觉测试跟踪无处着手。
+* 从开发者的角度来看，Gulp4主代码非常干净，一目了然。但是从使用者的角度来看，要使用它
+  还是有较高的门槛。尤其是对非开发人员使用更为艰难。
+
+
+### 开发小事
 
 当我设置了PropertyManager中对对象属性初始值的默认处理凡是为clone方式(避免相互影响)，
 而如果用户设置了不能clone的对象作为初始值的时候，就会报错(如console)，错误会很莫名其妙，
@@ -369,12 +379,15 @@ tasks:
 默认设置只能应对一部分情况，所以必须有开关调整，如果开发者单细胞考虑问题，写的代码出问题的
 机率就会变得更大。这算是个Stupid的实例。
 
+[ruby-rake]: https://github.com/ruby/rake
+[cmake]: http://cmake.org/
 [grunt]: http://gruntjs.com/
 [gulp]: http://gulpjs.com/
 [gulp4]: https://github.com/gulpjs/gulp/tree/4.0
 [front-matter]: http://jekyllrb.com/docs/frontmatter/
 [markdown]: https://en.wikipedia.org/wiki/Markdown
 [yaml]: http://yaml.org/
+[yeoman]:http://yeoman.io/
 [isdk-demo]:https://github.com/snowyu/isdk-demo.js
 [isdk]: https://github.com/snowyu/isdk.js
 [front-matter-markdown]: https://github.com/snowyu/front-matter-markdown.js
